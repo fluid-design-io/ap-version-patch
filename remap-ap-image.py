@@ -1,9 +1,14 @@
 # a script to untar .tar file and find the info.ver file, edit it with additional text: hello world, and then tar it back up
 from datetime import date
+from yaspin import yaspin
+from get_args import get_args
+
 import os
 import sys
 import tarfile
 import shutil
+
+import time
 
 
 def version_template(version_text):
@@ -14,45 +19,71 @@ info_end:
 altboot_fallback: 1
 """
 
-def main():
 
-    file_path = sys.argv[1]
-    version_text = sys.argv[2]
+def main():
+    args = get_args()
+    file_path = args.input
+    version_text = args.text
     # quit if no file path or version text given
     if not file_path or not version_text:
         print("No file path or version text given")
         return
-    # open tar file
-    tar = tarfile.open(file_path)
-    # if file is not a tar file or is empty, quit
-    if not tar or tar.members == []:
-        print("No tar file found")
-        return
-    # extract all files and create a temp folder
-    tar.extractall(path="temp")
-    # open info.ver file
-    info_ver_path = os.path.join("temp", "info.ver")
-    with open(info_ver_path, 'a') as f:
-        # make this file empty
-        f.truncate(0)
-        # write the version template to the file
-        f.write(version_template(version_text))
-    # open info file
-    ver_path = os.path.join("temp", "ver")
-    with open(ver_path, 'a') as f:
-        f.truncate(0)
-        f.write(version_template(version_text))
-    # open tar file and create a new tar file named with today's date + version text
-    date_string = date.today().strftime("%b-%d-%Y")
-    tar = tarfile.open(f"{date_string}-{version_text}.tar", "w")
-    # for each file in the temp folder, add it to the new tar file
-    for file in os.listdir('temp'):
-        file_path = os.path.join("temp", file)
-        tar.add(file_path, arcname=file)
-    # close tar file
-    tar.close()
-    # remove temp folder
-    shutil.rmtree('temp')
+    output_path = args.output if args.output else os.path.join(
+        "output", f"{date_string}-{version_text}.tar")
+    box_upload = args.upload
+
+    with yaspin(text="Checking files exists", color="yellow") as spinner:
+        # open tar file
+        tar = tarfile.open(file_path)
+        # if file is not a tar file or is empty, quit
+        if not tar or tar.members == []:
+            print("No tar file found")
+            return
+        # extract all files and create a temp folder
+        spinner.text = "Extracting files"
+        tar.extractall(path="temp")
+        # open info.ver file
+        info_ver_path = os.path.join("temp", "info.ver")
+        spinner.text = "Modifying info.ver and info"
+        with open(info_ver_path, 'a') as f:
+            # make this file empty
+            f.truncate(0)
+            # write the version template to the file
+            f.write(version_template(version_text))
+        # open info file
+        ver_path = os.path.join("temp", "ver")
+        with open(ver_path, 'a') as f:
+            f.truncate(0)
+            f.write(version_template(version_text))
+        # open tar file and create a new tar file named with today's date + version text
+        spinner.text = "Creating new tar file"
+        date_string = date.today().strftime("%b-%d-%Y")
+        # check if 'output' folder exists, if not, create it
+        if not os.path.exists("output"):
+            os.mkdir("output")
+        tar = tarfile.open(output_path, "w")
+        # for each file in the temp folder, add it to the new tar file
+        spinner.text = "Adding files to new tar file"
+        for file in os.listdir('temp'):
+            file_path = os.path.join("temp", file)
+            tar.add(file_path, arcname=file)
+        # close tar file
+        tar.close()
+        # remove temp folder
+        shutil.rmtree('temp')
+
+        if (box_upload):
+            spinner.text = "Uploading to box"
+            time.sleep(2)
+            spinner.text = ""
+            spinner.color = "green"
+            spinner.ok("✔")
+        else:
+            spinner.text = ""
+            spinner.color = "green"
+            spinner.ok(
+                f"✅ New tar file created: {date_string}-{version_text}.tar")
+
 
 # run main function
 if __name__ == '__main__':
