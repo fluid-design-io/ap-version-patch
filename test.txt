@@ -1,1 +1,2 @@
-Hi there
+Hi there Tuan!
+Tuan is learning python with Oliver :)
