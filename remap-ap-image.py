@@ -53,7 +53,7 @@ def main():
             # write the version template to the file
             f.write(version_template(version_text))
         # open info file
-        ver_path = os.path.join("temp", "ver")
+        ver_path = os.path.join("temp", "info")
         with open(ver_path, 'a') as f:
             f.truncate(0)
             f.write(version_template(version_text))
