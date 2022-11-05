@@ -9,7 +9,7 @@ import argparse
 
 def get_args():
     parser = argparse.ArgumentParser(description="Remap AP Image")
-    parser.add_argument("-i", "--input", dest="path", help="Path to tar file")
+    parser.add_argument("-i", "--input", dest="path", help="Path to tar file", required=True)
     parser.add_argument("-t", "--text", help="Version text to be updated for info and info.ver", required=True)
     parser.add_argument("-o", "--output", help="Path to output tar file", required=False)
     parser.add_argument("-u", "--upload", help="Upload to box, returns a shared link to the uploaded file", required=False, action="store_true")

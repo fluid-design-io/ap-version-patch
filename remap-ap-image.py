@@ -1,7 +1,9 @@
 # a script to untar .tar file and find the info.ver file, edit it with additional text: hello world, and then tar it back up
 from datetime import date
+from upload_file import upload_file_to_box
 from yaspin import yaspin
 from get_args import get_args
+from boxsdk import Client, CCGAuth
 
 import os
 import sys
@@ -9,6 +11,17 @@ import tarfile
 import shutil
 
 import time
+
+
+auth = CCGAuth(
+  client_id="egkrr2d915ry6y70i83vjopp0j310dr4",
+  client_secret="rPViiMNUOZERGzm2Te4lancNcpWFMl4m",
+  enterprise_id="956673804"
+)
+
+client = Client(auth)
+
+me = client.user().get()
 
 
 def version_template(version_text):
@@ -75,10 +88,12 @@ def main():
 
         if (box_upload):
             spinner.text = "Uploading to box"
-            time.sleep(2)
-            spinner.text = ""
-            spinner.color = "green"
-            spinner.ok("✔ (Actaully not working for now :)")
+            file_id=upload_file_to_box(client, '180673298837', output_path)
+            with yaspin(text="Creating sharing link", color="yellow") as spinner:
+                url = client.file(file_id).get_shared_link(access='open', allow_download=True, allow_edit=True)
+                spinner.text = ""
+                spinner.color = "green"
+                spinner.ok(f"You can view the file via: {url}")
         else:
             spinner.text = ""
             spinner.color = "green"
