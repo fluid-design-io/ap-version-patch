@@ -22,12 +22,14 @@ altboot_fallback: 1
 
 def main():
     args = get_args()
-    file_path = args.input
+    file_path = args.path
     version_text = args.text
     # quit if no file path or version text given
     if not file_path or not version_text:
         print("No file path or version text given")
         return
+    
+    date_string = date.today().strftime("%b-%d-%Y")
     output_path = args.output if args.output else os.path.join(
         "output", f"{date_string}-{version_text}.tar")
     box_upload = args.upload
@@ -57,7 +59,6 @@ def main():
             f.write(version_template(version_text))
         # open tar file and create a new tar file named with today's date + version text
         spinner.text = "Creating new tar file"
-        date_string = date.today().strftime("%b-%d-%Y")
         # check if 'output' folder exists, if not, create it
         if not os.path.exists("output"):
             os.mkdir("output")
@@ -77,7 +78,7 @@ def main():
             time.sleep(2)
             spinner.text = ""
             spinner.color = "green"
-            spinner.ok("✔")
+            spinner.ok("✔ (Actaully not working for now :)")
         else:
             spinner.text = ""
             spinner.color = "green"
